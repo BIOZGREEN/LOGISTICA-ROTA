@@ -1,10 +1,10 @@
-#=============================================
-# PLANEJAMENTO DE ROTA
-# NOME:
-# DESCRIÇÃO:
-# AUTOR: SILVANO MORAES DE SOUZA
-# VERSÃO: 
-#============================================= PREENCHA OS CAMPOS QUE ESTÃO EM BANCO
+//=============================================
+// PLANEJAMENTO DE ROTA
+// NOME:
+// DESCRIÇÃO:
+// AUTOR: SILVANO MORAES DE SOUZA
+// VERSÃO: 
+//=============================================
 const axios = require('axios');
 
 const ORS_API_KEY = process.env.OPENROUTESERVICE_API_KEY || '';

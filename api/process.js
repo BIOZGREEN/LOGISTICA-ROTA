@@ -1,10 +1,10 @@
-#=============================================
-# PLANEJAMENTO DE ROTA
-# NOME:
-# DESCRIÇÃO:
-# AUTOR: SILVANO MORAES DE SOUZA
-# VERSÃO: 
-#============================================= PREENCHA OS CAMPOS QUE ESTÃO EM BANCO
+//=============================================
+// PLANEJAMENTO DE ROTA
+// NOME:
+// DESCRIÇÃO:
+// AUTOR: SILVANO MORAES DE SOUZA
+// VERSÃO: 
+//=============================================
 const express = require('express');
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
