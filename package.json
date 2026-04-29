@@ -1,10 +1,3 @@
-#=============================================
-# PLANEJAMENTO DE ROTA
-# NOME: package.json
-# DESCRIÇÃO: Arquivo de configuração do Node.js com dependências e scripts do projeto
-# AUTOR: SILVANO MORAES DE SOUZA
-# VERSÃO: 1.0
-#=============================================
 {
   "name": "bioz-logistica-otimizador",
   "version": "1.0.0",
