@@ -1,11 +1,4 @@
-#=============================================
-# PLANEJAMENTO DE ROTA
-# NOME: README.md
-# DESCRIÇÃO: Documentação principal do projeto com instruções de instalação, uso e configuração
-# AUTOR: SILVANO MORAES DE SOUZA
-# VERSÃO: 1.0
-#=============================================
-# Bioz Logística - Otimizador de Rotas
+# Bioz Grenn - Sistema de planejamento de rotas
 
 Sistema completo para otimização de rotas logísticas com interface moderna e integração Google Maps.
 
