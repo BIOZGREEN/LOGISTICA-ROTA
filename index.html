@@ -542,6 +542,7 @@
                 if (dayStops.length > 0) {
                     routes.push({
                         day: currentDay + 1,
+                        vehicleId: currentDay + 1,
                         date: dayDate.toLocaleDateString('pt-BR'),
                         stops: dayStops,
                         totalKm: Math.round(currentKm * 10) / 10
