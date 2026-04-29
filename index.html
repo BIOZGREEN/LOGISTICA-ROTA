@@ -1,0 +1,891 @@
+<!--=============================================
+# PLANEJAMENTO DE ROTA
+# NOME: index.html
+# DESCRIÇÃO: Página principal da aplicação com interface para upload de arquivos, otimização de rotas e visualização de resultados
+# AUTOR: SILVANO MORAES DE SOUZA
+# VERSÃO: 1.0
+#=============================================
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#003ec7",
+                        "on-primary": "#ffffff",
+                        "surface": "#fbf8ff",
+                        "surface-container": "#ededfb",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#191b25",
+                        "outline": "#737688",
+                        "outline-variant": "#c3c5d9",
+                        "blue-100": "#dbeafe",
+                        "blue-800": "#1e40af",
+                        "green-600": "#16a34a",
+                        "green-700": "#15803d",
+                        "orange-600": "#ea580c",
+                        "purple-600": "#9333ea"
+                    },
+                    spacing: {
+                        "stack-md": "6px",
+                        "unit": "6px",
+                        "section-gap": "20px",
+                        "stack-sm": "3px",
+                        "gutter": "10px",
+                        "stack-lg": "10px",
+                        "container-margin": "16px"
+                    },
+                    fontSize: {
+                        "body-sm": ["12px", { lineHeight: "16px", fontWeight: "400" }],
+                        "h1": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "h2": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+                        "metric-xl": ["36px", { lineHeight: "44px", letterSpacing: "-0.03em", fontWeight: "800" }],
+                        "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .kpi-gradient-blue {
+            background: linear-gradient(135deg, #0052ff 0%, #003ec7 100%);
+        }
+
+        .kpi-gradient-green {
+            background: linear-gradient(135deg, #00c853 0%, #009624 100%);
+        }
+
+        .kpi-gradient-purple {
+            background: linear-gradient(135deg, #6200ea 0%, #4a00b0 100%);
+        }
+
+        .kpi-gradient-orange {
+            background: linear-gradient(135deg, #FF8C00 0%, #FF4500 100%);
+        }
+
+        .kpi-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-icon {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            opacity: 0.3;
+            font-size: 45px !important;
+            pointer-events: none;
+        }
+
+        .drag-over {
+            background-color: #fef3c7;
+            border-color: #f59e0b;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(2px);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #003ec7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-surface-container-lowest text-on-surface min-h-screen flex flex-col">
+    <header class="w-full px-container-margin py-3 bg-surface-container-lowest flex items-center gap-4">
+        <img src="LOGO-BIOZ.png" alt="Bioz Logo" class="h-[60px] w-auto" />
+        <h1 class="text-[27px] font-bold text-on-surface tracking-tight">Planejamento de Rotas</h1>
+    </header>
+
+    <main class="flex-grow px-container-margin pb-section-gap">
+        <!-- KPI Cards -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 mb-3">
+            <div
+                class="kpi-gradient-blue kpi-card p-2 rounded-lg shadow text-on-primary flex flex-col justify-between h-24 transform hover:scale-[1.02] transition-transform">
+                <div class="flex-grow flex flex-col justify-center">
+                    <span class="font-label-bold text-[10px] uppercase tracking-wider opacity-90">Custo de Combustível</span>
+                    <div class="font-bold text-lg mt-1" id="totalSavings">R$ 0,00</div>
+                </div>
+                <span class="material-symbols-outlined kpi-icon">savings</span>
+                <div class="flex items-center gap-1 text-[10px] relative z-10">
+                    <span>Estimado p/ rota atual (Gasolina)</span>
+                </div>
+            </div>
+            <div
+                class="kpi-gradient-green kpi-card p-2 rounded-lg shadow text-on-primary flex flex-col justify-between h-24 transform hover:scale-[1.02] transition-transform">
+                <div class="flex-grow flex flex-col justify-center">
+                    <span class="font-label-bold text-[10px] uppercase tracking-wider opacity-90">KM Total</span>
+                    <div class="font-bold text-lg mt-1" id="kmReduction">0 km</div>
+                </div>
+                <span class="material-symbols-outlined kpi-icon">distance</span>
+                <div class="flex items-center gap-1 text-[10px] relative z-10">
+                    <span>Distância total percorrida no dia</span>
+                </div>
+            </div>
+            <div
+                class="kpi-gradient-orange kpi-card p-2 rounded-lg shadow text-on-primary flex flex-col justify-between h-24 transform hover:scale-[1.02] transition-transform">
+                <div class="flex-grow flex flex-col justify-center">
+                    <span class="font-label-bold text-[10px] uppercase tracking-wider opacity-90">Capacidade</span>
+                    <div class="font-bold text-lg mt-1"><span id="totalWeight">0</span> / 650kg</div>
+                </div>
+                <span class="material-symbols-outlined kpi-icon">weight</span>
+                <div class="flex items-center gap-2 relative z-10">
+                    <div class="flex-grow bg-white/20 h-2 rounded-full overflow-hidden">
+                        <div id="weightProgressBar" class="bg-white h-full" style="width: 0%"></div>
+                    </div>
+                    <span id="weightPercent" class="text-[10px] font-bold">0%</span>
+                </div>
+                <div class="flex items-center gap-1 text-[10px] relative z-10">
+                    <span>Capacidade de carga utilizada</span>
+                </div>
+            </div>
+            <div
+                class="kpi-gradient-purple kpi-card p-2 rounded-lg shadow text-on-primary flex flex-col justify-between h-24 transform hover:scale-[1.02] transition-transform">
+                <div class="flex-grow flex flex-col justify-center">
+                    <span class="font-label-bold text-[10px] uppercase tracking-wider opacity-90">Nível de Serviço</span>
+                    <div class="font-bold text-lg mt-1" id="serviceLevel">100%</div>
+                </div>
+                <span class="material-symbols-outlined kpi-icon">verified</span>
+                <div class="flex items-center gap-1 text-[10px] relative z-10 bg-white/20 px-2 py-0.5 rounded-full w-fit">
+                    <span id="totalStops">0</span> paradas / <span id="totalRoutes">0</span> rotas
+                </div>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+            <!-- Left Column: Upload -->
+            <aside class="lg:col-span-4 flex flex-col gap-3">
+                <div class="bg-white border border-outline-variant rounded-lg p-3 shadow-sm">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="material-symbols-outlined text-primary text-lg"
+                            data-icon="cloud_upload">cloud_upload</span>
+                        <h2 class="font-semibold text-sm">Central de Upload</h2>
+                    </div>
+                    <div id="dropZone"
+                        class="border-2 border-dashed border-outline-variant rounded-lg p-4 flex flex-col items-center justify-center text-center hover:border-primary-container transition-colors cursor-pointer group">
+                        <div
+                            class="w-10 h-10 bg-surface-container rounded-full flex items-center justify-center mb-2 group-hover:bg-primary-fixed transition-colors">
+                            <span class="material-symbols-outlined text-primary text-xl">upload_file</span>
+                        </div>
+                        <p class="text-sm text-on-surface mb-1">Arraste arquivos PDF ou CSV</p>
+                        <p class="text-xs text-outline">ou clique para selecionar</p>
+                        <input type="file" id="fileInput" multiple accept=".pdf,.csv" class="hidden">
+                    </div>
+                    <div id="fileList" class="mt-2 flex flex-col gap-1 max-h-32 overflow-y-auto"></div>
+
+                    <div class="mt-4 p-2 bg-blue-50 border border-blue-100 rounded-lg">
+                        <label class="text-[10px] font-bold uppercase text-blue-800 mb-1 block">Base de Saída
+                            (Origem)</label>
+                        <p class="text-[10px] text-blue-900 leading-tight">RUA MARIA PLENS DE QUEVEDO MARTHE, 135,
+                            Sorocaba - SP</p>
+                    </div>
+
+
+                    <div class="mt-2 mb-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-[10px] font-bold uppercase text-primary block">Quantos carros disponíveis?</label>
+                            <span id="fuelPriceDisplay" class="text-[9px] text-outline bg-surface-container px-2 py-0.5 rounded-full flex items-center gap-1">
+                                ⛽ Carregando preço...
+                            </span>
+                        </div>
+                        <select id="vehicleCountInput" class="w-full text-xs p-2 border border-primary/30 rounded-lg focus:ring-primary focus:border-primary bg-primary/5">
+                            <option value="1">1 Carro</option>
+                            <option value="2">2 Carros</option>
+                            <option value="3">3 Carros</option>
+                            <option value="4">4 Carros</option>
+                            <option value="5">5 Carros</option>
+                        </select>
+                    </div>
+
+                    <button id="optimizeBtn"
+                        class="w-full mt-3 bg-primary text-on-primary text-sm font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-primary-container active:scale-95 transition-all shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        disabled>
+                        <span class="material-symbols-outlined text-lg" data-icon="auto_fix_high">auto_fix_high</span>
+                        OTIMIZAR ROTAS
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Right Column: Results -->
+            <section class="lg:col-span-8">
+                <div class="bg-white border border-outline-variant rounded-lg shadow-sm overflow-hidden h-full">
+                    <div
+                        class="px-3 py-2 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-lg"
+                                data-icon="analytics">analytics</span>
+                            <h2 class="text-sm font-bold">Painel de Resultados</h2>
+                            <span id="mockBadge"
+                                class="hidden px-2 py-0.5 bg-orange-100 text-orange-600 rounded-full text-[10px] font-bold">MODO
+                                SIMULAÇÃO</span>
+                        </div>
+                        <div class="flex gap-1">
+                            <button id="exportBtn" class="p-1 hover:bg-surface-container rounded transition-colors"
+                                title="Exportar CSV">
+                                <span class="material-symbols-outlined text-outline text-lg"
+                                    data-icon="download">download</span>
+                            </button>
+                            <button id="openFullRouteBtn"
+                                class="p-1 hover:bg-surface-container rounded transition-colors" title="Abrir no Maps">
+                                <span class="material-symbols-outlined text-outline text-lg" data-icon="map">map</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="geocodingAlert"
+                        class="hidden px-3 py-2 bg-red-50 border-b border-red-100 flex items-center gap-2 text-red-700">
+                        <span class="material-symbols-outlined text-sm">warning</span>
+                        <span class="text-[10px] font-semibold"><span id="invalidCount">0</span> endereços não
+                            localizados e excluídos da rota.</span>
+                    </div>
+
+                    <div id="emptyState" class="text-center py-6">
+                        <p class="text-sm text-gray-500">Faca upload e clique em "OTIMIZAR ROTAS"</p>
+                    </div>
+                    <div id="resultsContainer" class="hidden fade-in overflow-x-auto">
+                        <div id="dayFilters" class="flex gap-1 p-2 border-b border-outline-variant overflow-x-auto">
+                        </div>
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-surface-container/50 border-b border-outline-variant">
+                                    <th class="px-2 py-2 font-bold text-outline uppercase tracking-wider text-center">
+                                        Parada</th>
+                                    <th class="px-2 py-2 font-bold text-outline uppercase tracking-wider">Endereco</th>
+                                    <th class="px-2 py-2 font-bold text-outline uppercase tracking-wider text-center">
+                                        Historico</th>
+                                    <th class="px-2 py-2 font-bold text-outline uppercase tracking-wider text-center">
+                                        Data</th>
+                                    <th class="px-2 py-2 font-bold text-outline uppercase tracking-wider text-center">
+                                        Chegada</th>
+                                    <th class="px-2 py-2 font-bold text-outline uppercase tracking-wider text-center">
+                                        Saida</th>
+                                    <th class="px-2 py-2 font-bold text-outline uppercase tracking-wider text-right">
+                                        Viagem</th>
+                                    <th class="px-2 py-2 font-bold text-outline uppercase tracking-wider text-right">KM
+                                    </th>
+                                    <th class="px-2 py-2 font-bold text-outline uppercase tracking-wider text-center">
+                                        Maps</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsBody" class="divide-y divide-outline-variant/30"></tbody>
+                        </table>
+                    </div>
+                    <div id="resultsFooter"
+                        class="hidden px-3 py-2 bg-surface-container/20 border-t border-outline-variant flex justify-between items-center text-xs">
+                        <span id="resultsCount" class="text-outline"></span>
+                        <div class="flex gap-1">
+                            <button id="prevPage"
+                                class="px-2 py-1 border border-outline-variant rounded text-xs font-semibold hover:bg-surface-container transition-colors">Anterior</button>
+                            <button id="nextPage"
+                                class="px-2 py-1 bg-primary text-on-primary rounded text-xs font-semibold hover:bg-primary-container transition-colors">Proximo</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer
+        class="w-full border-t border-outline-variant py-stack-lg px-container-margin bg-white flex justify-between items-center">
+        <p class="font-body-sm text-outline">&copy; 2026 Bioz Green - Sistema de Planejamento de Rotas</p>
+    </footer>
+
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <p class="text-sm font-bold text-primary mt-4">Otimizando sua logística...</p>
+        <p class="text-[10px] text-outline">Geocodificando endereços e calculando rotas</p>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const CONFIG = {
+            SOROCABA: "Sorocaba, SP",
+            AVERAGE_SPEED_KMH: 60,
+            STOP_TIME_MINUTES: 10,
+            GAS_COST_PER_KM: 0.60,
+            DAILY_START_HOUR: 8,
+            DAILY_END_HOUR: 16,
+            DAILY_LIMIT_MINUTES: (16 - 8) * 60,
+            HOURLY_OVERTIME_RATE: 50.00
+        };
+
+        let uploadedFiles = [];
+        let optimizedRoutes = [];
+        let currentPage = 1;
+        let selectedDay = null;
+        let currentFuelPrice = 6.14;
+        const ITEMS_PER_PAGE = 10;
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const optimizeBtn = document.getElementById('optimizeBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const emptyState = document.getElementById('emptyState');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsBody = document.getElementById('resultsBody');
+        const resultsFooter = document.getElementById('resultsFooter');
+        const resultsCount = document.getElementById('resultsCount');
+        const dayFilters = document.getElementById('dayFilters');
+        const exportBtn = document.getElementById('exportBtn');
+        const openFullRouteBtn = document.getElementById('openFullRouteBtn');
+        const totalSavingsEl = document.getElementById('totalSavings');
+        const kmReductionEl = document.getElementById('kmReduction');
+        const overtimeSavedEl = document.getElementById('overtimeSaved');
+        const totalStopsEl = document.getElementById('totalStops');
+        const totalRoutesEl = document.getElementById('totalRoutes');
+
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // Buscar preço do combustível
+        async function fetchFuelPrice() {
+            try {
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const apiBase = isLocal ? 'http://localhost:3001' : '';
+                const res = await fetch(apiBase + '/api/fuel-price');
+                const data = await res.json();
+                if (data.price) {
+                    currentFuelPrice = data.price;
+                    const display = document.getElementById('fuelPriceDisplay');
+                    if (display) {
+                        display.innerHTML = `⛽ Gasolina (Sorocaba): R$ ${currentFuelPrice.toFixed(2).replace('.', ',')}`;
+                        display.title = data.status === 'live' ? 'Preço atualizado em tempo real' : 'Preço base (Fallback)';
+                    }
+                }
+            } catch (e) {
+                console.error('Erro ao buscar preço:', e);
+            }
+        }
+        fetchFuelPrice();
+
+        function handleFiles(files) {
+            const validFiles = Array.from(files).filter(f =>
+                f.type === 'application/pdf' || f.type === 'text/csv' ||
+                f.name.endsWith('.pdf') || f.name.endsWith('.csv')
+            );
+            uploadedFiles = uploadedFiles.concat(validFiles).slice(0, 100);
+            updateFileList();
+            optimizeBtn.disabled = uploadedFiles.length === 0;
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = uploadedFiles.map((f, i) => `
+                <div class="flex items-center justify-between p-1 bg-surface-container rounded border border-outline-variant/30">
+                    <div class="flex items-center gap-1 overflow-hidden">
+                        <span class="material-symbols-outlined text-sm ${f.name.endsWith('.pdf') ? 'text-secondary' : 'text-primary'}">${f.name.endsWith('.pdf') ? 'picture_as_pdf' : 'description'}</span>
+                        <span class="font-body-sm font-semibold truncate">${f.name}</span>
+                    </div>
+                    <button onclick="removeFile(${i})" class="text-error hover:text-error-container">
+                        <span class="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            updateFileList();
+            optimizeBtn.disabled = uploadedFiles.length === 0;
+        }
+
+        function generateMockDeliveries(count) {
+            const streets = [
+                'Av. Brigadeiro Faria Lima, 3477 - Itaim Bibi, Sao Paulo, SP',
+                'Rua Oscar Freire, 1021 - Jardins, Sao Paulo, SP',
+                'Al. Rio Negro, 500 - Alphaville, Barueri, SP',
+                'Rod. Anhanguera, KM 18 - Industrial, Osasco, SP',
+                'Av. Paulista, 2000 - Bela Vista, Sao Paulo, SP'
+            ];
+            const deliveries = [];
+            for (let i = 0; i < count; i++) {
+                deliveries.push({
+                    address: streets[i % streets.length],
+                    distance: 10 + Math.random() * 90
+                });
+            }
+            return deliveries;
+        }
+
+        function calculateOptimizedRoutes(deliveries) {
+            const routes = [];
+            let remaining = deliveries.slice();
+            let currentDay = 0;
+            const startDate = new Date('2026-04-29');
+
+            while (remaining.length > 0) {
+                const dayDate = new Date(startDate);
+                dayDate.setDate(startDate.getDate() + currentDay);
+                const dayStops = [];
+                let currentTime = CONFIG.DAILY_START_HOUR * 60;
+                let currentKm = 0;
+
+                remaining.sort((a, b) => a.distance - b.distance);
+
+                for (let i = 0; i < remaining.length; i++) {
+                    const stop = remaining[i];
+                    const travelTime = (stop.distance / CONFIG.AVERAGE_SPEED_KMH) * 60;
+                    const arrivalTime = currentTime + travelTime;
+                    const departureTime = arrivalTime + CONFIG.STOP_TIME_MINUTES;
+
+                    if (departureTime > CONFIG.DAILY_END_HOUR * 60) break;
+
+                    dayStops.push({
+                        parada: 'P' + (dayStops.length + 1),
+                        address: stop.address,
+                        arrival: arrivalTime,
+                        departure: departureTime,
+                        travelTime: Math.round(travelTime),
+                        km: Math.round(stop.distance * 10) / 10,
+                        date: dayDate.toLocaleDateString('pt-BR'),
+                        tipo: 'entrega',
+                        nf: 'NF-' + (1000 + Math.floor(Math.random() * 9000))
+                    });
+
+                    currentTime = departureTime;
+                    currentKm += stop.distance;
+                }
+
+                remaining = remaining.slice(dayStops.length);
+
+                if (dayStops.length > 0) {
+                    routes.push({
+                        day: currentDay + 1,
+                        date: dayDate.toLocaleDateString('pt-BR'),
+                        stops: dayStops,
+                        totalKm: Math.round(currentKm * 10) / 10
+                    });
+                }
+                currentDay++;
+            }
+            return routes;
+        }
+
+        function calculateSavings(originalKm, routes) {
+            const optimizedKm = routes.reduce((sum, r) => sum + r.totalKm, 0);
+            const originalTotalKm = originalKm * 1.5;
+            const kmSaved = originalTotalKm - optimizedKm;
+            const gasSavings = kmSaved * CONFIG.GAS_COST_PER_KM;
+            const overtimeHours = Math.max(0, (originalKm / CONFIG.AVERAGE_SPEED_KMH) * 60 - CONFIG.DAILY_LIMIT_MINUTES) / 60;
+            const overtimeSavings = overtimeHours * CONFIG.HOURLY_OVERTIME_RATE;
+
+            return {
+                totalSavings: gasSavings + overtimeSavings,
+                kmSaved: kmSaved,
+                overtimeHours: overtimeHours
+            };
+        }
+
+        function formatTime(val) {
+            if (!val) return '00:00';
+            if (typeof val === 'string' && val.includes('T')) {
+                const d = new Date(val);
+                return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+            }
+            const h = Math.floor(val / 60) % 24; // Garantir formato 24h
+            const m = Math.round(val % 60);
+            return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+        }
+
+        function getMapsUrl(stop) {
+            const addr = stop.address || '';
+            const cep = stop.cep || '';
+            const query = (cep ? cep + ', ' : '') + addr;
+            return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query);
+        }
+
+        function getFullRouteUrl(route) {
+            const waypoints = route.stops
+                .filter(s => s.tipo !== 'retorno_base')
+                .map(s => encodeURIComponent(s.address || ''))
+                .join('/');
+            return 'https://www.google.com/maps/dir/Sorocaba, SP/' + waypoints + '/Sorocaba, SP';
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            toast.style.backgroundColor = type === 'success' ? '#16a34a' : '#dc2626';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        optimizeBtn.addEventListener('click', async function () {
+            loadingOverlay.style.display = 'flex';
+            optimizeBtn.disabled = true;
+            emptyState.classList.add('hidden');
+
+            try {
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const apiBase = isLocal ? 'http://localhost:3001' : '';
+                let useMock = false;
+
+                if (uploadedFiles.length === 0) throw new Error('Selecione ao menos um arquivo (PDF ou CSV)');
+
+                const tomorrowDate = new Date();
+                tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+                const startDate = tomorrowDate.toISOString().split('T')[0];
+
+                // Verificar integridade do backend
+                try {
+                    const healthCheck = await fetch(apiBase + '/api/optimize', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ addresses: [] })
+                    });
+                    if (!healthCheck.ok && healthCheck.status !== 400) useMock = true;
+                } catch (e) {
+                    useMock = true;
+                }
+
+                if (useMock) {
+                    showToast('Backend offline. Simulando otimização...', 'error');
+                    const deliveries = generateMockDeliveries(15);
+                    optimizedRoutes = calculateOptimizedRoutes(deliveries);
+                    updateDashboard(optimizedRoutes, {
+                        totalSavings: 450.50,
+                        kmSaved: 120,
+                        overtimeHours: 2,
+                        totalStops: 15,
+                        totalRoutes: optimizedRoutes.length
+                    });
+                } else {
+                    const formData = new FormData();
+                    uploadedFiles.forEach(file => formData.append('files', file));
+
+                    const processRes = await fetch(apiBase + '/api/process', { method: 'POST', body: formData });
+                    if (!processRes.ok) {
+                        const errData = await processRes.json();
+                        throw new Error(errData.error || 'Erro no processamento dos arquivos');
+                    }
+                    const processData = await processRes.json();
+
+                    if (!processData.addresses || processData.addresses.length === 0) {
+                        throw new Error('Nenhum endereço encontrado nos arquivos');
+                    }
+
+                    const vehicleCount = document.getElementById('vehicleCountInput').value;
+
+                    const optimizeRes = await fetch(apiBase + '/api/optimize', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            addresses: processData.addresses,
+                            startDate: startDate,
+                            vehicleCount: vehicleCount,
+                            fuelPrice: currentFuelPrice
+                        })
+                    });
+
+                    if (!optimizeRes.ok) {
+                        const errData = await optimizeRes.json();
+                        throw new Error(errData.error || 'Falha ao otimizar rotas');
+                    }
+
+                    const optimizeData = await optimizeRes.json();
+
+                    optimizedRoutes = optimizeData.routes;
+                    updateDashboard(optimizedRoutes, optimizeData.summary);
+
+                    if (optimizeData.summary.invalidStops > 0) {
+                        showToast(`${optimizeData.summary.invalidStops} endereços não foram localizados no mapa.`, 'error');
+                    } else {
+                        showToast('Rotas otimizadas com sucesso!');
+                    }
+                }
+
+                resultsContainer.classList.remove('hidden');
+                resultsFooter.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Erro:', error);
+                showToast(error.message, 'error');
+                emptyState.classList.remove('hidden');
+            } finally {
+                loadingOverlay.style.display = 'none';
+                optimizeBtn.disabled = false;
+            }
+        });
+
+        function updateDashboard(routes, summary) {
+            console.log('[Dashboard] Atualizando com resumo:', summary);
+            
+            // Custo de Combustível (R$ / 10 * 6.14)
+            const fuelCost = summary.fuelCost || summary.totalSavings || 0;
+            if (totalSavingsEl) totalSavingsEl.textContent = 'R$ ' + fuelCost.toFixed(2).replace('.', ',');
+            
+            // KM Total
+            const totalKm = summary.totalKm || summary.distance || summary.kmSaved || 0;
+            if (kmReductionEl) kmReductionEl.textContent = totalKm.toFixed(1).replace('.', ',') + ' km';
+
+            // Cálculo de Volume/Peso
+            const totalWeight = routes.reduce((sum, r) => sum + r.stops.reduce((s, st) => s + (st.weight || 0), 0), 0);
+            const weightEl = document.getElementById('totalWeight');
+            const weightBar = document.getElementById('weightProgressBar');
+            const weightPercentEl = document.getElementById('weightPercent');
+            
+            if (weightEl) weightEl.textContent = Math.round(totalWeight);
+            if (weightBar) {
+                const maxCapacity = routes.length * 650;
+                const percent = Math.min(100, (totalWeight / maxCapacity) * 100);
+                weightBar.style.width = percent + '%';
+                weightBar.className = percent > 90 ? 'bg-red-500 h-full' : 'bg-white h-full';
+                if (weightPercentEl) weightPercentEl.textContent = Math.round(percent) + '%';
+            }
+
+            // Nível de Serviço
+            const allStops = routes.flatMap(r => r.stops);
+            const serviceLevelEl = document.getElementById('serviceLevel');
+            const serviceLevelSub = document.getElementById('serviceLevelSub');
+            
+            if (serviceLevelEl) serviceLevelEl.textContent = '100%';
+            if (serviceLevelSub && summary.totalDurationFormatted) {
+                serviceLevelSub.innerHTML = `<span class="font-bold">${summary.totalDurationFormatted}</span> totais | ${routes.length} veículos`;
+            } else {
+                if (totalStopsEl) totalStopsEl.textContent = allStops.length;
+                if (totalRoutesEl) totalRoutesEl.textContent = routes.length;
+            }
+
+            currentPage = 1;
+            selectedDay = null;
+            renderFilters();
+            renderResults();
+        }
+
+        function renderFilters() {
+            if (!dayFilters) return;
+
+            let totalStopsAll = optimizedRoutes.reduce((s, r) => s + r.stops.length, 0);
+            let buttonsHtml = '<button onclick="filterByDay(null)" class="px-2 py-1 rounded text-xs font-bold ' +
+                (selectedDay === null ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface') +
+                '">Todos (' + totalStopsAll + ')</button>';
+
+            for (let i = 0; i < optimizedRoutes.length; i++) {
+                const r = optimizedRoutes[i];
+                buttonsHtml += '<button onclick="filterByDay(' + r.day + ')" class="px-2 py-1 rounded text-xs font-bold ' +
+                    (selectedDay === r.day ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface') +
+                    '">D' + r.day + ' (' + r.stops.length + ')</button>';
+            }
+
+            buttonsHtml += '<button onclick="shareDayLink()" class="ml-auto px-2 py-1 rounded text-xs font-bold bg-green-600 text-white hover:bg-green-700 flex items-center gap-1">' +
+                '<span class="material-symbols-outlined text-[14px]">share</span>Enviar Link</button>';
+
+            dayFilters.innerHTML = buttonsHtml;
+        }
+
+        window.filterByDay = function (day) {
+            selectedDay = day;
+            currentPage = 1;
+            renderFilters();
+            renderResults();
+        };
+
+        window.shareDayLink = function () {
+            const dayToShare = selectedDay || 1;
+            const route = optimizedRoutes.find(r => r.day === dayToShare);
+            if (!route) return;
+
+            const waypoints = route.stops
+                .filter(s => s.tipo !== 'retorno_base')
+                .map(s => encodeURIComponent(s.address))
+                .join('/');
+
+            const url = 'https://www.google.com/maps/dir/Sorocaba, SP/' + waypoints + '/Sorocaba, SP';
+
+            if (navigator.share) {
+                navigator.share({ title: 'Rota D' + dayToShare, url: url });
+            } else {
+                prompt('Copie o link para enviar ao motorista:', url);
+            }
+        };
+
+        function renderResults() {
+            let stopsToShow = [];
+            if (selectedDay) {
+                const dayRoutes = optimizedRoutes.filter(r => r.day === selectedDay);
+                stopsToShow = dayRoutes.flatMap(r => {
+                    return r.stops
+                        .filter(s => s.tipo === 'entrega')
+                        .map(s => Object.assign({}, s, { day: r.day, vehicleId: r.vehicleId }));
+                });
+            } else {
+                stopsToShow = optimizedRoutes.flatMap(r => {
+                    return r.stops
+                        .filter(s => s.tipo === 'entrega')
+                        .map(s => Object.assign({}, s, { day: r.day, vehicleId: r.vehicleId }));
+                });
+            }
+
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const pageStops = stopsToShow.slice(start, end);
+
+            // Agrupar por Veículo para exibição
+            let html = '';
+            let currentVehicle = null;
+
+            pageStops.forEach(stop => {
+                if (stop.vehicleId !== currentVehicle) {
+                    currentVehicle = stop.vehicleId;
+                    html += `<tr class="bg-primary/5 font-bold"><td colspan="9" class="px-2 py-2 text-primary border-y border-primary/10 text-[10px]">CARRO ${currentVehicle}</td></tr>`;
+                }
+
+                const address = stop.address || '';
+                const parts = address.split(',').map(p => p.trim());
+                const rua = parts[0] || '';
+                const cidadeEstado = parts.slice(1).join(', ') || '';
+                
+                const km = stop.km || 0;
+                const time = stop.travelTime || 0;
+
+                html += '<tr class="hover:bg-primary-fixed/10 transition-colors text-xs">' +
+                    '<td class="px-2 py-1 text-center"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">P' + stop.parada + ' (D' + stop.day + ')</span></td>' +
+                    '<td class="px-2 py-1"><div class="font-bold text-xs">' + rua + '</div><div class="text-[10px] text-outline">' + cidadeEstado + '</div></td>' +
+                    '<td class="px-2 py-1 text-center text-xs font-bold text-primary">' + (stop.nf || 'N/A') + '</td>' +
+                    '<td class="px-2 py-1 text-center text-xs">' + stop.date + '</td>' +
+                    '<td class="px-2 py-1 text-center text-xs">' + formatTime(stop.arrival) + '</td>' +
+                    '<td class="px-2 py-1 text-center text-xs">' + formatTime(stop.departure) + '</td>' +
+                    '<td class="px-2 py-1 text-right text-xs">' + time + ' min</td>' +
+                    '<td class="px-2 py-1 text-right text-xs font-bold">' + km.toFixed(1) + ' km</td>' +
+                    '<td class="px-2 py-1 text-center"><button onclick="window.open(\'' + getMapsUrl(stop) + '\')" class="p-0.5 hover:bg-surface-container rounded"><span class="material-symbols-outlined text-sm text-primary">location_on</span></button></td>' +
+                    '</tr>';
+            });
+
+            resultsBody.innerHTML = html;
+
+            const totalStops = stopsToShow.length;
+            resultsCount.textContent = totalStops > 0 ?
+                'Mostrando ' + (start + 1) + '-' + Math.min(end, totalStops) + ' de ' + totalStops + ' paradas' :
+                'Nenhuma parada para exibir';
+        }
+
+        exportBtn.addEventListener('click', function () {
+            const allStops = optimizedRoutes.flatMap(r => {
+                return r.stops
+                    .filter(s => s.tipo !== 'retorno_base')
+                    .map(s => Object.assign({}, s, { day: r.day }));
+            });
+            let csv = 'Dia,Parada,Endereco,Historico,Data,Chegada,Saida,Tempo Viagem (min),KM\n';
+            allStops.forEach(s => {
+                csv += s.day + ',' + s.parada + ',"' + (s.address || '') + '",' + (s.nf || '') + ',' + s.date + ',' + formatTime(s.arrival) + ',' + formatTime(s.departure) + ',' + s.travelTime + ',' + s.km + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'rota_otimizada_' + new Date().toLocaleDateString('pt-BR').replace(/\//g, '-') + '.csv';
+            link.click();
+        });
+
+        openFullRouteBtn.addEventListener('click', function () {
+            if (optimizedRoutes.length > 0) {
+                window.open(getFullRouteUrl(optimizedRoutes[0]));
+            }
+        });
+
+        document.getElementById('prevPage').addEventListener('click', function () {
+            if (currentPage > 1) { currentPage--; renderResults(); }
+        });
+        document.getElementById('nextPage').addEventListener('click', function () {
+            const totalStops = selectedDay ?
+                (optimizedRoutes.find(r => r.day === selectedDay)?.stops.filter(s => s.tipo !== 'retorno_base').length || 0) :
+                optimizedRoutes.reduce((s, r) => s + r.stops.filter(s => s.tipo !== 'retorno_base').length, 0);
+            if (currentPage * ITEMS_PER_PAGE < totalStops) { currentPage++; renderResults(); }
+        });
+    </script>
+</body>
+
+</html>

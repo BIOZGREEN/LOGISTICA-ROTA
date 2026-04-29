@@ -1,0 +1,34 @@
+#=============================================
+# PLANEJAMENTO DE ROTA
+# NOME: vercel.json
+# DESCRIÇÃO: Configuração de deploy para a plataforma Vercel
+# AUTOR: SILVANO MORAES DE SOUZA
+# VERSÃO: 1.0
+#=============================================
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "assets/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
