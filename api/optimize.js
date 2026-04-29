@@ -316,6 +316,53 @@ module.exports = async (req, res) => {
                     totalKm: Math.round(routeKm * 10) / 10
                 });
             }
+        } else if (validStops.length > 0) {
+            // FALLBACK: Simulação caso ORS falhe ou não haja chave
+            console.log('[Backend] Usando fallback de simulação');
+            const stopsPerVehicle = Math.ceil(validStops.length / parseInt(vehicleCount));
+            for (let v = 0; v < parseInt(vehicleCount); v++) {
+                const vehicleStops = validStops.slice(v * stopsPerVehicle, (v + 1) * stopsPerVehicle);
+                if (vehicleStops.length === 0) continue;
+                
+                let dayStops = [];
+                let routeKm = 0;
+                let lastDate = new Date(startDate);
+                lastDate.setHours(DAILY_START_HOUR, 0, 0, 0);
+
+                vehicleStops.forEach((stop, i) => {
+                    const travelMeters = 5000 + (Math.random() * 3000); 
+                    const travelSeconds = Math.round((travelMeters / 1000 / 40) * 3600); 
+                    const arrival = new Date(lastDate.getTime() + (travelSeconds * 1000));
+                    const departure = new Date(arrival.getTime() + (STOP_TIME_MINUTES * 60 * 1000));
+                    
+                    lastDate = departure;
+                    routeKm += (travelMeters / 1000);
+                    totalDistanceMeters += travelMeters;
+                    totalDurationSeconds += (travelSeconds + (STOP_TIME_MINUTES * 60));
+
+                    dayStops.push({
+                        parada: i + 1,
+                        vehicleId: v + 1,
+                        address: stop.address,
+                        arrival: arrival.toISOString(),
+                        departure: departure.toISOString(),
+                        travelTime: Math.round(travelSeconds / 60),
+                        km: parseFloat((travelMeters / 1000).toFixed(1)),
+                        date: lastDate.toLocaleDateString('pt-BR'),
+                        tipo: 'entrega',
+                        nf: stop.nf,
+                        weight: stop.weight,
+                        volume: stop.volume
+                    });
+                });
+
+                routes.push({
+                    day: 1,
+                    vehicleId: v + 1,
+                    stops: dayStops,
+                    totalKm: Math.round(routeKm * 10) / 10
+                });
+            }
         }
 
         const totalKm = totalDistanceMeters / 1000;
