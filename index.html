@@ -621,9 +621,19 @@
                 const d = new Date(val);
                 return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
             }
-            const h = Math.floor(val / 60) % 24; // Garantir formato 24h
+            const h = Math.floor(val / 60) % 24; 
             const m = Math.round(val % 60);
             return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+        }
+
+        function formatDuration(minutes) {
+            if (!minutes || minutes === 0) return '0 min';
+            const h = Math.floor(minutes / 60);
+            const m = Math.round(minutes % 60);
+            if (h > 0) {
+                return `${h}h${m > 0 ? ' ' + m + 'min' : ''}`;
+            }
+            return `${m} min`;
         }
 
         function getMapsUrl(stop) {
@@ -891,7 +901,7 @@
                     '<td class="px-2 py-1 text-center text-xs">' + stop.date + '</td>' +
                     '<td class="px-2 py-1 text-center text-xs">' + formatTime(stop.arrival) + '</td>' +
                     '<td class="px-2 py-1 text-center text-xs">' + formatTime(stop.departure) + '</td>' +
-                    '<td class="px-2 py-1 text-right text-xs">' + time + ' min</td>' +
+                    '<td class="px-2 py-1 text-right text-xs font-medium">' + formatDuration(time) + '</td>' +
                     '<td class="px-2 py-1 text-right text-xs font-bold">' + km.toFixed(1) + ' km</td>' +
                     '<td class="px-2 py-1 text-center"><button onclick="window.open(\'' + getMapsUrl(stop) + '\')" class="p-0.5 hover:bg-surface-container rounded"><span class="material-symbols-outlined text-sm text-primary">location_on</span></button></td>' +
                     '</tr>';
@@ -913,7 +923,7 @@
             });
             let csv = 'Dia,Parada,Endereco,Historico,Data,Chegada,Saida,Tempo Viagem (min),KM\n';
             allStops.forEach(s => {
-                csv += s.day + ',' + s.parada + ',"' + (s.address || '') + '",' + (s.nf || '') + ',' + s.date + ',' + formatTime(s.arrival) + ',' + formatTime(s.departure) + ',' + s.travelTime + ',' + s.km + '\n';
+                csv += s.day + ',' + s.parada + ',"' + (s.address || '') + '",' + (s.nf || '') + ',' + s.date + ',' + formatTime(s.arrival) + ',' + formatTime(s.departure) + ',"' + formatDuration(s.travelTime) + '",' + s.km + '\n';
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
